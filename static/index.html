@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real Time Weather</title>
+<!-- Pinned by Subresource Integrity: the browser refuses the file if the CDN
+     ever serves bytes other than these. Bump the hash with the version. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+      crossorigin="anonymous" referrerpolicy="no-referrer">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+  html, body { margin:0; height:100%; font-family:-apple-system, Arial, sans-serif; }
+  #map { position:absolute; inset:0; }
+  .panel { position:fixed; z-index:9999; background:rgba(255,255,255,.93);
+           border-radius:8px; box-shadow:0 1px 6px rgba(0,0,0,.3); }
+  #legend { bottom:24px; left:24px; padding:10px 14px; }
+  #legend h4 { margin:0 0 6px; font-size:12px; color:#222; }
+  #ramp { display:flex; width:260px; max-width:calc(100vw - 76px); }
+  #ramp div { flex:1; text-align:center; font-size:11px; color:#333; }
+  #ramp i { display:block; height:14px; border:1px solid rgba(0,0,0,.15); }
+  #loader { position:fixed; inset:0; z-index:10000; display:flex; gap:10px;
+            align-items:center; justify-content:center; background:rgba(255,255,255,.75);
+            font-size:13px; color:#333; transition:opacity .3s; }
+  #loader.gone { opacity:0; pointer-events:none; }
+  .spin { width:18px; height:18px; border:2px solid #ccc; border-top-color:#b45309;
+          border-radius:50%; animation:r .8s linear infinite; }
+  @keyframes r { to { transform:rotate(360deg); } }
+  .pin { display:flex; align-items:center; gap:5px; white-space:nowrap;
+         transform:translate(-5px,-6px); pointer-events:none; }
+  .pin span { font:600 11px -apple-system, Arial, sans-serif; color:#111;
+              text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 3px #fff; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="loader"><div class="spin"></div><span>Fetching radar…</span></div>
+<div id="legend" class="panel">
+  <h4>Reflectivity (dBZ)</h4>
+  <div id="ramp"></div>
+</div>
+
+<script>
+const STOPS = [[20,'#a8e6a1'],[25,'#5fcf6a'],[30,'#f4e04d'],[35,'#f7a936'],
+               [40,'#ee6a2e'],[45,'#d62828'],[50,'#a4133c'],[55,'#7b2cbf']];
+// Server-rendered from the PLACES setting; the first entry is the map centre.
+const PLACES = __PLACES__;
+
+document.getElementById('ramp').innerHTML = STOPS.map(([v,c],i) =>
+  `<div><i style="background:${c}"></i>${v}${i===STOPS.length-1?'+':''}</div>`).join('');
+
+const map = L.map('map').setView([PLACES[0][1], PLACES[0][2]], 11);
+L.tileLayer("__TILES__", __TILEOPTS__).addTo(map);
+
+for (const [name, lat, lon] of PLACES) {
+  L.marker([lat, lon], { interactive:false, icon: L.divIcon({
+    className:'', iconSize:[0,0], iconAnchor:[0,0],
+    html:`<div class="pin"><svg width="11" height="11"><circle cx="5.5" cy="5.5" r="3.5"
+          fill="#1f2937" stroke="#fff" stroke-width="2"/></svg><span>${name}</span></div>`
+  })}).addTo(map);
+}
+
+const radar = L.layerGroup().addTo(map);
+const storms = L.layerGroup().addTo(map);
+let shown = -1;
+
+function draw(s) {
+  radar.clearLayers();
+  storms.clearLayers();
+  for (const l of s.layers) {
+    const b = l.bounds;                       // [south, west, north, east]
+    L.imageOverlay(l.url, [[b[0], b[1]], [b[2], b[3]]],
+                   { opacity: 0.7, className: 'radar' }).addTo(radar);
+    // Scan boundary. Without it there is no way to tell "no echo" from
+    // "outside this radar's coverage", which is a real misreading hazard
+    // once short-range and long-range radars are mixed on one map.
+    L.circle(l.site, {
+      radius: l.rangeKm * 1000, color: '#555', weight: 0.75, opacity: 0.4,
+      fill: false, dashArray: '6,6', interactive: true
+    }).bindTooltip(`${l.rangeKm} km range — ${l.label}`).addTo(radar);
+  }
+  s.cells.forEach((c, i) => {
+    L.circleMarker([c.lat, c.lon], {
+      radius: Math.max(5, Math.min(14, Math.pow(c.areaKm2, 0.35))),
+      color:'#fff', weight:3, opacity:.6,
+      fillColor:'#2ca02c', fillOpacity:.3
+    }).bindPopup(`Cell #${i+1} — ${c.dbz.toFixed(0)} dBZ · ${c.areaKm2.toFixed(0)} km²`)
+      .addTo(storms);
+  });
+}
+
+async function load() {
+  try {
+    const s = await (await fetch('/api/state', { cache:'no-store' })).json();
+    if (s.version !== shown) { draw(s); shown = s.version; }
+    if (s.version > 0) document.getElementById('loader').classList.add('gone');
+  } catch (e) {
+    console.warn('state fetch failed, will retry', e);
+  }
+}
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

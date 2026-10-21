@@ -1,0 +1,5 @@
+packages: .
+
+-- Treat warnings as errors in CI only (see .github/workflows/ci.yml); local
+-- builds stay warning-noisy rather than warning-fatal so that a work in
+-- progress still compiles.

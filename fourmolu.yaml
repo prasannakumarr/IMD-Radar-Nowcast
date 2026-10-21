@@ -1,0 +1,27 @@
+# Tuned to the existing tree rather than to fourmolu's defaults: two-space
+# indent, leading commas, `-- |` haddocks, and a space before record braces.
+indentation: 2
+column-limit: none
+function-arrows: trailing
+comma-style: leading
+import-export-style: leading
+import-grouping: legacy
+indent-wheres: true
+record-brace-space: true
+newlines-between-decls: 1
+haddock-style: single-line
+haddock-style-module: single-line
+haddock-location-signature: auto
+let-style: auto
+in-style: right-align
+if-style: indented
+single-constraint-parens: auto
+single-deriving-parens: auto
+sort-constraints: false
+sort-derived-classes: false
+sort-deriving-clauses: false
+trailing-section-operators: true
+unicode: never
+respectful: true
+fixities: []
+reexports: []

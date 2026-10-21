@@ -1,0 +1,29 @@
+# hlint configuration.
+#
+# The default rules are mostly right for this codebase. Every exception below
+# is deliberate, and says why.
+
+# The decoder is written as explicit compositions for readability; hlint's
+# eta-reduction suggestions make the pipeline harder to read, not easier.
+- ignore: {name: "Eta reduce"}
+
+# Pointful lambdas in the pixel loops read better than the point-free form.
+- ignore: {name: "Avoid lambda"}
+- ignore: {name: "Avoid lambda using `infix`"}
+
+# The 8-neighbour comprehensions in `flood` deliberately keep `dx` and `dy`
+# adjacent. Interleaving the guards the way hlint wants saves nothing
+# measurable on a 3x3 window and breaks the symmetry that makes the bounds
+# checks easy to read as a group.
+- ignore: {name: "Move guards forward"}
+
+# Partial functions are a real hazard; treat them as errors rather than
+# warnings so they cannot drift into the pure core.
+- functions:
+    - {name: head, within: []}
+    - {name: tail, within: []}
+    - {name: fromJust, within: []}
+    - {name: read, within: []}
+    # `!!` is banned except in `dilate`, which indexes `iterate step v0` --
+    # an infinite list, so the index can never run off the end.
+    - {name: "!!", within: [RTW.Decode.dilate]}

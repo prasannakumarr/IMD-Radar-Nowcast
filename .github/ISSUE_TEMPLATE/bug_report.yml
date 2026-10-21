@@ -1,0 +1,60 @@
+name: Bug report
+description: Something decodes, renders, or serves incorrectly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: a lot of "wrong rain" reports turn out to be X-band
+        attenuation behind a heavy core, which is physics rather than a bug.
+        The [Annexure](../blob/main/ANNEXURE.md#the-attenuation-caveat) covers it.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw on the map, and what you expected instead.
+    validations:
+      required: true
+
+  - type: input
+    id: radar
+    attributes:
+      label: Which radar
+      description: Product code if you know it, e.g. caz_cni, caz_kkl, caz_plk.
+
+  - type: input
+    id: when
+    attributes:
+      label: When
+      description: Approximate date and time (IST) — radar bugs are often scan-specific.
+
+  - type: textarea
+    id: gif
+    attributes:
+      label: The source image
+      description: |
+        If you can, attach the IMD GIF the problem came from
+        (`https://mausam.imd.gov.in/Radar/<code>.gif`). Without it, a decode
+        bug is usually unreproducible — IMD overwrites the still in place.
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Server output
+      description: The lines the program printed, especially any "refreshed vN" line.
+      render: text
+
+  - type: input
+    id: env
+    attributes:
+      label: GHC / OS
+      placeholder: "GHC 9.10.1, macOS 15"
+
+  - type: checkboxes
+    id: hygiene
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have not pasted my `.env`, a Mapbox/CARTO key, or my home coordinates into this report.
+          required: true

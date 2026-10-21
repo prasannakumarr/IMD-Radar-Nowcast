@@ -1,0 +1,20 @@
+# Normalise line endings in the repository; check out native.
+* text=auto eol=lf
+
+*.hs      text diff=haskell
+*.cabal   text
+*.html    text diff=html
+*.md      text diff=markdown
+*.yml     text
+*.yaml    text
+
+# Binary assets: never diffed, never line-ending-mangled.
+*.webp    binary
+*.png     binary
+*.jpg     binary
+*.gif     binary
+
+# Keep docs and screenshots out of GitHub's language statistics so the repo
+# reads as the Haskell project it is.
+docs/**        linguist-documentation
+static/*.html  linguist-vendored=false

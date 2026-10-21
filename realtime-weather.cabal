@@ -1,0 +1,90 @@
+cabal-version:      3.0
+name:               realtime-weather
+version:            0.1.0.0
+synopsis:           Live IMD radar nowcast, decoded from public radar imagery
+description:
+  A live rain-radar nowcast for Tamil Nadu. IMD publishes radar as a picture
+  rather than as data, so this reads the picture back into numbers: it
+  calibrates against the colour bar the renderer prints on the image itself,
+  recovers dBZ per pixel, fuses three radars into one view, and serves the
+  result as a Leaflet map.
+  .
+  Not an official forecast. See the README for limitations.
+
+homepage:           https://github.com/prasannakumarr/IMD-Radar-Nowcast
+bug-reports:        https://github.com/prasannakumarr/IMD-Radar-Nowcast/issues
+license:            MIT
+license-file:       LICENSE
+author:             prasannakumarr
+maintainer:         https://github.com/prasannakumarr
+copyright:          (c) 2026 Real Time Weather contributors
+category:           Web, Geography
+build-type:         Simple
+tested-with:        GHC ==9.10.1
+
+extra-doc-files:
+  README.md
+  ANNEXURE.md
+
+-- Embedded at compile time by RTW.Page via file-embed, so an sdist that
+-- omits it will not build.
+extra-source-files:
+  static/index.html
+  .env.example
+
+source-repository head
+    type:     git
+    location: https://github.com/prasannakumarr/IMD-Radar-Nowcast.git
+
+common warnings
+    ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates
+                 -Wincomplete-uni-patterns -Wredundant-constraints
+                 -O2
+
+-- Decoding a 1800x1800 panel is the hot path and it parallelises over
+-- radars, so the executable wants the threaded runtime on all cores.
+-- These flags are meaningless on a library, hence the separate stanza.
+common executable-rts
+    ghc-options: -threaded -rtsopts "-with-rtsopts=-N"
+
+library
+    import:           warnings
+    hs-source-dirs:   src
+    exposed-modules:  RTW.Config
+                      RTW.Decode
+                      RTW.Cells
+                      RTW.Page
+    build-depends:    base             >=4.17 && <5
+                    , bytestring
+                    , text
+                    , vector
+                    , JuicyPixels
+                    , aeson
+                    , containers
+                    , directory
+                    , file-embed
+    default-language: GHC2021
+
+executable realtime-weather
+    import:           warnings, executable-rts
+    hs-source-dirs:   app
+    main-is:          Main.hs
+    build-depends:    base
+                    , realtime-weather
+                    , bytestring
+                    , text
+                    , vector
+                    , JuicyPixels
+                    , aeson
+                    , scotty
+                    , http-conduit
+                    , stm
+                    , async
+                    , time
+                    , process
+                    , http-types
+                    , http-client
+                    , http-client-tls
+                    , crypton-connection
+                    , tls
+    default-language: GHC2021

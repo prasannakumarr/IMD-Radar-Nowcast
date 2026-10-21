@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Keep the pinned action SHAs current. Pinning without Dependabot is just
+  # a slow way to run stale actions.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ['*']
