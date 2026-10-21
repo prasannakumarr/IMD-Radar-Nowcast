@@ -25,7 +25,7 @@ jobs:
         ghc: ['9.10.1']
         cabal: ['3.12.1.0']
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - id: setup
         uses: haskell-actions/setup@0f8e8c99d88aeb3fbfd523f1ef2c6f762d10d64d # v2
@@ -37,7 +37,7 @@ jobs:
         run: cabal build --dry-run
 
       - name: Restore cached dependencies
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: cache
         with:
           path: ${{ steps.setup.outputs.cabal-store }}
@@ -56,7 +56,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up hlint
         uses: haskell-actions/hlint-setup@fe9cd1cd1af94a23900c06738e73f6ddb092966a # v2
@@ -68,7 +68,7 @@ jobs:
           fail-on: warning
 
       - name: Check formatting
-        uses: haskell-actions/run-fourmolu@3b7702b41516aa428dfe6e295dc73476ae58f69e # v11
+        uses: haskell-actions/run-fourmolu@1b9df64b784203126500372730b9725c97e4040b # v13
         with:
           pattern: |
             src/**/*.hs
